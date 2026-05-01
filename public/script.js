@@ -1,37 +1,41 @@
-const BASE = "https://api-allowed.vercel.app";
+const BASE = "/api";
 
 let token = localStorage.getItem("token") || "";
 let currentUser = JSON.parse(localStorage.getItem("user")) || {};
 
-const toggle = document.querySelector("#toggleSwitch");
-const toggleText = document.querySelector("#toggleText");
+let toggle, toggleText;
 
-/* AUTO LOGIN */
-window.onload = () => {
-  if (token) showPanel();
-};
+/* INIT AFTER DOM LOAD */
+document.addEventListener("DOMContentLoaded", () => {
+  toggle = document.querySelector("#toggleSwitch");
+  toggleText = document.querySelector("#toggleText");
+
+  if (token && currentUser?.client) {
+    showPanel();
+  }
+});
 
 /* NAVIGATION */
 function hideAll() {
-  landingScreen.style.display = "none";
-  registerBox.style.display = "none";
-  loginBox.style.display = "none";
-  panel.style.display = "none";
+  document.getElementById("landingScreen").style.display = "none";
+  document.getElementById("registerBox").style.display = "none";
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("panel").style.display = "none";
 }
 
 function openRegister() {
   hideAll();
-  registerBox.style.display = "block";
+  document.getElementById("registerBox").style.display = "block";
 }
 
 function openLogin() {
   hideAll();
-  loginBox.style.display = "block";
+  document.getElementById("loginBox").style.display = "block";
 }
 
 function goBack() {
   hideAll();
-  landingScreen.style.display = "block";
+  document.getElementById("landingScreen").style.display = "block";
 }
 
 /* REGISTER */
@@ -39,23 +43,21 @@ registerBtn.onclick = async () => {
   const loader = regLoader;
   const text = regText;
 
-  const client = regClient.value.trim();
-  const username = regUsername.value.trim();
-  const password = regPassword.value.trim();
-  const confirm = regConfirm.value.trim();
+  const clientVal = regClient.value.trim();
+  const usernameVal = regUsername.value.trim();
+  const passwordVal = regPassword.value.trim();
+  const confirmVal = regConfirm.value.trim();
 
-  // ✅ 1. VALIDATION
-  if (!client || !username || !password || !confirm) {
-    showMessage("registerMsg", "All fields required❗");
+  if (!clientVal || !usernameVal || !passwordVal || !confirmVal) {
+    showMessage("registerMsg", "All fields required ❗");
     return;
   }
 
-  if (password !== confirm) {
+  if (passwordVal !== confirmVal) {
     showMessage("registerMsg", "Passwords do not match ❌");
     return;
   }
 
-  // ✅ START LOADER
   loader.style.display = "inline-block";
   text.innerText = "Registering...";
 
@@ -63,40 +65,39 @@ registerBtn.onclick = async () => {
     const res = await fetch(BASE + "/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client, username, password }),
+      body: JSON.stringify({
+        client: clientVal,
+        username: usernameVal,
+        password: passwordVal,
+      }),
     });
 
-    // ✅ HANDLE HTTP ERROR
-    if (!res.ok) {
-      throw new Error("Server error");
-    }
+    if (!res.ok) throw new Error("Server error");
 
     const data = await res.json();
 
-    // ✅ SUCCESS
     if (data.success) {
       token = data.token;
-      currentUser = { client, username };
+      currentUser = { client: clientVal, username: usernameVal };
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(currentUser));
 
       showMessage("registerMsg", "Registered successfully ✅", "success");
 
-      setTimeout(() => {
-        showPanel();
-      }, 800);
+      setTimeout(showPanel, 700);
+
+      // ✅ clear inputs
+      regClient.value = "";
+      regUsername.value = "";
+      regPassword.value = "";
+      regConfirm.value = "";
     } else {
-      // ✅ BACKEND ERROR MESSAGE (if exists)
       showMessage("registerMsg", data.message || "Registration failed ❌");
     }
-  } catch (err) {
-    console.error(err);
-
-    // ✅ NETWORK / SERVER ERROR
-    showMessage("registerMsg", "Network issue ⚠️ Try again");
+  } catch {
+    showMessage("registerMsg", "Network issue ⚠️");
   } finally {
-    // ✅ ALWAYS RESET UI
     loader.style.display = "none";
     text.innerText = "Register";
   }
@@ -104,20 +105,18 @@ registerBtn.onclick = async () => {
 
 /* LOGIN */
 loginBtn.onclick = async () => {
-  const loaderEl = loader; // your #loader span
-  const textEl = btnText; // your #btnText span
+  const loaderEl = loader;
+  const textEl = btnText;
 
   const clientVal = client.value.trim();
   const usernameVal = username.value.trim();
   const passwordVal = password.value.trim();
 
-  // ✅ 1) VALIDATION
   if (!clientVal || !usernameVal || !passwordVal) {
     showMessage("loginMsg", "All fields required ❗");
     return;
   }
 
-  // ✅ START LOADER
   loaderEl.style.display = "inline-block";
   textEl.innerText = "Logging...";
   loginBtn.disabled = true;
@@ -133,14 +132,10 @@ loginBtn.onclick = async () => {
       }),
     });
 
-    // ✅ 2) HANDLE HTTP ERROR
-    if (!res.ok) {
-      throw new Error("Server error");
-    }
+    if (!res.ok) throw new Error();
 
     const data = await res.json();
 
-    // ✅ 3) SUCCESS / FAIL
     if (data.success) {
       token = data.token;
       currentUser = { client: clientVal, username: usernameVal };
@@ -150,20 +145,18 @@ loginBtn.onclick = async () => {
 
       showMessage("loginMsg", "Login successful ✅", "success");
 
-      // small delay so user sees success
-      setTimeout(() => {
-        showPanel();
-      }, 700);
+      setTimeout(showPanel, 600);
+
+      // ✅ clear inputs
+      client.value = "";
+      username.value = "";
+      password.value = "";
     } else {
       showMessage("loginMsg", data.message || "Invalid credentials ❌");
     }
-  } catch (err) {
-    console.error(err);
-
-    // ✅ 4) NETWORK / SERVER ERROR
-    showMessage("loginMsg", "Network issue ⚠️ Try again");
+  } catch {
+    showMessage("loginMsg", "Network issue ⚠️");
   } finally {
-    // ✅ 5) ALWAYS RESET UI
     loaderEl.style.display = "none";
     textEl.innerText = "Login";
     loginBtn.disabled = false;
@@ -173,7 +166,9 @@ loginBtn.onclick = async () => {
 /* PANEL */
 function showPanel() {
   hideAll();
-  panel.style.display = "block";
+  document.getElementById("panel").style.display = "block";
+
+  setPanelTitle(); // 🔥 FIXED
   loadStatus();
 }
 
@@ -184,21 +179,24 @@ async function loadStatus() {
   status.innerText = "Loading...";
   status.style.color = "#facc15";
 
-  const res = await fetch(BASE + "/check", {
-    headers: { Authorization: token },
-  });
+  try {
+    const res = await fetch(BASE + "/check", {
+      headers: { Authorization: token },
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!data.success) return;
+    if (!data.success) return;
 
-  const isValid = data.isValid;
+    toggle.checked = data.isValid;
+    toggleText.innerText = data.isValid ? "ON" : "OFF";
 
-  toggle.checked = isValid;
-  toggleText.innerText = isValid ? "ON" : "OFF";
-
-  status.innerText = isValid ? "API ON" : "API OFF";
-  status.style.color = isValid ? "#22c55e" : "#ef4444";
+    status.innerText = data.isValid ? "API ON" : "API OFF";
+    status.style.color = data.isValid ? "#22c55e" : "#ef4444";
+  } catch {
+    status.innerText = "Error";
+    status.style.color = "red";
+  }
 }
 
 /* APPLY */
@@ -221,10 +219,8 @@ applyBtn.onclick = async () => {
     }),
   });
 
-  const isValid = toggle.checked;
-
-  status.innerText = isValid ? "API ON" : "API OFF";
-  status.style.color = isValid ? "#22c55e" : "#ef4444";
+  status.innerText = toggle.checked ? "API ON" : "API OFF";
+  status.style.color = toggle.checked ? "#22c55e" : "#ef4444";
 };
 
 /* LOGOUT */
@@ -235,8 +231,9 @@ logoutBtn.onclick = () => {
   goBack();
 };
 
-function showMessage(elementId, text, type = "error") {
-  const el = document.getElementById(elementId);
+/* MESSAGE */
+function showMessage(id, text, type = "error") {
+  const el = document.getElementById(id);
 
   el.innerText = text;
   el.className = `msg show ${type}`;
@@ -245,4 +242,24 @@ function showMessage(elementId, text, type = "error") {
     el.className = "msg";
     el.innerText = "";
   }, 1000);
+}
+
+/* PANEL TITLE */
+function setPanelTitle() {
+  const title = document.getElementById("panelTitle");
+  const endpoint = document.getElementById("apiEndpoint");
+
+  if (!title) return;
+
+  if (title) {
+    title.innerText = currentUser?.client
+      ? `🚀 API Control - ${currentUser.client}`
+      : "🚀 API Control";
+  }
+  
+  // ✅ SET API URL
+  if (endpoint && currentUser?.client) {
+    const url = `https://api-allowed.vercel.app/api/validate/${currentUser.client}`;
+    endpoint.innerText = url;
+  }
 }
