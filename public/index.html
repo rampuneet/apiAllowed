@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>API Control Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div id="app">
+
+    <!-- LANDING -->
+    <div id="landingScreen" class="landing">
+      <h1>🚀 Welcome to API Control</h1>
+      <p>Select an option to continue</p>
+
+      <div class="btn-group">
+        <button onclick="openRegister()">📝 Register</button>
+        <button onclick="openLogin()">🔐 Login</button>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerBox" class="card" style="display:none;">
+      <div class="card-header">
+        <span class="back-arrow" onclick="goBack()">←</span>
+        <h2>📝 Register</h2>
+      </div>
+
+      <input id="regClient" placeholder="Client Name">
+      <input id="regUsername" placeholder="Username">
+      <input id="regPassword" type="password" placeholder="Password">
+      <input id="regConfirm" type="password" placeholder="Confirm Password">
+
+      <button id="registerBtn">
+        <span id="regText">Register</span>
+        <span id="regLoader" class="loader"></span>
+      </button>
+      <div id="registerMsg" class="msg"></div>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginBox" class="card" style="display:none;">
+      <div class="card-header">
+        <span class="back-arrow" onclick="goBack()">←</span>
+        <h2>🔐 Login</h2>
+      </div>
+
+      <input id="client" placeholder="Client Name">
+      <input id="username" placeholder="Username">
+      <input id="password" type="password" placeholder="Password">
+
+      <button id="loginBtn">
+        <span id="btnText">Login</span>
+        <span id="loader" class="loader"></span>
+      </button>
+      <div id="loginMsg" class="msg"></div>
+    </div>
+
+    <!-- PANEL -->
+    <div id="panel" class="card" style="display:none;">
+      <h2>🚀 API Control</h2>
+
+      <!-- ✅ STATUS ABOVE TOGGLE -->
+      <div id="apiStatus" class="api-status">Loading...</div>
+
+      <div class="toggle-container">
+        <span id="toggleText">OFF</span>
+
+        <label class="switch">
+          <input type="checkbox" id="toggleSwitch">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button id="applyBtn" class="apply-btn">✅ Apply Changes</button>
+      <button id="logoutBtn" class="logout-btn">🔓 Logout</button>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
