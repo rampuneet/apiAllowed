@@ -212,3 +212,26 @@ input:checked+.slider:before {
 
   backdrop-filter: blur(8px);
 }
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.apply-btn {
+  background: #22c55e;
+  transition: all 0.2s ease;
+}
+
+/* 🔴 Disabled state */
+.apply-btn:disabled {
+  background: #64748b;
+  /* grey */
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 🟢 Active hover */
+.apply-btn:not(:disabled):hover {
+  background: #16a34a;
+}

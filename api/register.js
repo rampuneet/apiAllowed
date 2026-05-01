@@ -1,6 +1,5 @@
 import { connectDB } from "../lib/db";
-import { User, Config, Session } from "../lib/models";
-import crypto from "crypto";
+import { User } from "../lib/models";
 
 export default async function handler(req, res) {
   try {
@@ -8,31 +7,39 @@ export default async function handler(req, res) {
 
     const { client, username, password } = req.body;
 
+    // ✅ 1. VALIDATION
     if (!client || !username || !password) {
-      return res.json({ success: false });
+      return res.status(400).json({
+        success: false,
+        message: "All fields required",
+      });
     }
 
-    const existing = await User.findOne({ client, username });
+    // ✅ 2. CHECK DUPLICATE CLIENT (PUT HERE 👇)
+    const existing = await User.findOne({ client });
 
     if (existing) {
-      return res.json({ success: false, message: "User exists" });
+      return res.json({
+        success: false,
+        message: "Client already exists",
+      });
     }
 
-    await User.create({ client, username, password });
-
-    await Config.create({
+    // ✅ 3. CREATE USER
+    await User.create({
       client,
       username,
+      password,
       isValid: false,
     });
 
-    const token = crypto.randomBytes(24).toString("hex");
-
-    await Session.create({ client, username, token });
-
-    res.json({ success: true, token });
+    res.json({ success: true });
   } catch (err) {
     console.log("REGISTER ERROR:", err);
-    res.status(500).json({ success: false });
+
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 }

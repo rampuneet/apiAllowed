@@ -1,24 +1,28 @@
 import { connectDB } from "../lib/db";
-import { Session, Config } from "../lib/models";
+import { User } from "../lib/models";
 
 export default async function handler(req, res) {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const token = req.headers.authorization;
+    const { client, isValid } = req.body;
 
-  const session = await Session.findOne({ token });
+    if (!client) {
+      return res.status(400).json({
+        success: false,
+        message: "Client required",
+      });
+    }
 
-  if (!session) {
-    return res.status(401).json({ success: false });
+    await User.findOneAndUpdate({ client: client.trim() }, { isValid });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.log("UPDATE ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
-
-  const { isValid } = req.body;
-
-  await Config.findOneAndUpdate(
-    { client: session.client, username: session.username },
-    { isValid },
-    { upsert: true },
-  );
-
-  res.json({ success: true });
 }

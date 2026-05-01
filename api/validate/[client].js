@@ -1,5 +1,5 @@
 import { connectDB } from "../../lib/db";
-import { Config } from "../../lib/models";
+import { User } from "../../lib/models";
 
 export default async function handler(req, res) {
   try {
@@ -7,13 +7,25 @@ export default async function handler(req, res) {
 
     const { client } = req.query;
 
-    const data = await Config.findOne({ client });
+    if (!client) {
+      return res.status(400).json({
+        success: false,
+        message: "Client missing",
+      });
+    }
 
-    res.json({
+    const user = await User.findOne({ client: client.trim() });
+
+    return res.json({
       success: true,
-      isValid: data?.isValid || false,
+      isValid: user?.isValid || false,
     });
   } catch (err) {
-    res.status(500).json({ success: false });
+    console.log("VALIDATE ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 }
